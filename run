@@ -19,7 +19,7 @@ POSSIBLE_DOCKER_COMPOSE=( "docker-compose" "docker compose" )
 for cmd in "${POSSIBLE_DOCKER_COMPOSE[@]}"; do
     if command_exists "$cmd"; then
         echo "'$cmd' exists, using that."
-        export DC_CMD="$cmd"
+        read -r -a DC_CMD <<< "$cmd"
         break
     fi
 done
@@ -62,9 +62,9 @@ source .env
 
 if [ "$USE_TUNNELS" == "true" ]; then
   if [ ! -e "./data/cloudflared/home/.cloudflared/cert.pem" ]; then
-    "$DC_CMD" -f docker-compose.yml run --rm cloudflared login
-    "$DC_CMD" -f docker-compose.yml run --rm cloudflared --origincert /root/.cloudflared/cert.pem tunnel create $DOMAIN_NAME
-    "$DC_CMD" -f docker-compose.yml run --rm cloudflared --origincert /root/.cloudflared/cert.pem tunnel route dns $DOMAIN_NAME $DOMAIN_NAME
+    "${DC_CMD[@]}" -f docker-compose.yml run --rm cloudflared login
+    "${DC_CMD[@]}" -f docker-compose.yml run --rm cloudflared --origincert /root/.cloudflared/cert.pem tunnel create $DOMAIN_NAME
+    "${DC_CMD[@]}" -f docker-compose.yml run --rm cloudflared --origincert /root/.cloudflared/cert.pem tunnel route dns $DOMAIN_NAME $DOMAIN_NAME
   fi
 elif [ "$NO_WEB" != "true" ]; then
   if [ ! -e ./data/letsencrypt/etc/renewal/chaotic.conf ]; then
@@ -111,9 +111,9 @@ if [ ! -z "$UPDATE_IMAGES" ]; then
 fi
 
 if [ "$NO_WEB" == "true" ]; then
-  "$DC_CMD" up "${COMPOSEFLAGS[@]}"
+  "${DC_CMD[@]}" up "${COMPOSEFLAGS[@]}"
 elif [ "$USE_TUNNELS" == "true" ]; then
-  "$DC_CMD" --profile cloudflared up "${COMPOSEFLAGS[@]}"
+  "${DC_CMD[@]}" --profile cloudflared up "${COMPOSEFLAGS[@]}"
 else
-  "$DC_CMD" --profile letsencrypt up "${COMPOSEFLAGS[@]}"
+  "${DC_CMD[@]}" --profile letsencrypt up "${COMPOSEFLAGS[@]}"
 fi
